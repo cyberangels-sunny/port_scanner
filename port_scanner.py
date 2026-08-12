@@ -1,6 +1,7 @@
 # ╔══════════════════════════════╗
-# ║       CYB PORT SCANNER       ║
+# ║       CYB PORT SCANNER       ║  ---complete function 
 # ╚══════════════════════════════╝
+
 
 # Target       : 192.168.1.68
 # Ports        : 1-65535
@@ -12,7 +13,7 @@
 # ----------------
 # 22     SSH
 # 80     HTTP
-# 443    HTTPS
+# 443    HTTPS    
 
 
 
@@ -24,7 +25,6 @@
 #cyb -p- -t 127.0.0.1 (hostname/target) all ports --done  
 #cyb -p 80 22 12 -t 127.0.0.1 (hostname/target) mulitple ports
 
-
 #cyb -p 80 -t 127.0.0.1 (hostname/target)
 # mulithreading used 
 
@@ -32,6 +32,8 @@ import time , threading , socket , sys
 
 # store the open ports 
 open_ports = []
+port_no = []
+all  =  0 
 
 # functions 
 
@@ -59,11 +61,14 @@ def single_scan  (ip, port):
 # code = mul 1 
 def multiple_scan (ip,ports):
     # port is type of a tupple
-    t1 = "null"
+    t = []
+
     for port in ports:
         t1 = threading.Thread(target = single_scan, args = (ip,port))
         t1.start()
-    t1.join()
+        t.append(t1)
+    for close in t:
+        close.join()
 
 
 
@@ -81,10 +86,39 @@ def all_scan (ip):
         t.join()
 
 
+def display (end_time,start_time,open_ports,ip):
+    print("\n")
+    print("╔══════════════════════════════╗")
+    print("║       CYB PORT SCANNER       ║")
+    print("╚══════════════════════════════╝ \n \n ")
+    print("Target       : ",str(ip))
+    if all == 1 :
+        print("given ports for scanning   : 1 - 65535 " )
+       
+    else :
+        print("given ports for scanning   :",end = "" )
+        for port in port_no :  # ye line kyu nhi chal rahi 
+            print(port ," ", end ="" )
+        print("") 
+
+      
+       
+    print("Closed ports : ",(65535- len(open_ports)))
+    print("time taken ------> ",end_time-start_time)
+    print("OPEN PORTS         " ,len(open_ports))
+    print("-------------------------")
+    print ("PORT           SERVICE")
+    print("-------------------------")
+    try :
+        for port in open_ports :
+            print(port ,"    ",socket.getservbyport(port))
+    except OSError :
+        print(port ,"    ","service unknown")
+
 #return = "functionchara terminate here"
 
 lis = sys.argv
-port_no = []
+
 ipadd  = []
 
 
@@ -145,8 +179,10 @@ try :
         multiple_scan(ip,port_no)
 
     elif v == 3 :
+
         ip = ipadd[0]
         all_scan(ip)
+        all = 1
 
         
     elif lis[1] =="cyb":
@@ -158,16 +194,13 @@ try :
         print("cyb -p 80 -t 127.0.0.1 (for single scan )")
         print("cyb -p- -t 127.0.0.1 (for all ports) ")
         print("cyb -p 80 22 12 -t 127.0.0.1 mulitple ports")
-
-
     
 except IndexError :
         print("command not found please try with (cyb -h) for mannual")
         sys.exit()
 
+
 end_time = time.time()
 
-print("time taken ------> ",end_time-start_time)
-
-
+display (end_time,start_time,open_ports,ip)
 
